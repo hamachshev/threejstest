@@ -166,7 +166,7 @@ let app = () => {
 				<button onClick={logPositions}>Log Positions</button>
 			</div>
 			<div style={{ flex: 1 }}>
-				<Canvas>
+				<Canvas camera={{ position: [10, 10, 10], fov: 50 }}>
 					<ambientLight intensity={0.5} />
 					<directionalLight position={[5, 5, 5]} intensity={1} />
 					{cubes.map((cube) => (
