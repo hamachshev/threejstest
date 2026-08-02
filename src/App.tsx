@@ -1,6 +1,6 @@
 import { Grid, OrbitControls, TransformControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Mesh } from "three";
 
 const floorX = 10
@@ -22,10 +22,11 @@ type CubeProps = {
 	editing: boolean
 	onSelect: (id: number) => void
 	onDoubleClick: (id: number) => void
-	onDraggingChange: (dragging: boolean) => void
+	onTransformingChange: (transforming: boolean) => void
+	onPositionChange: (id: number, position: [number, number, number]) => void
 }
 
-let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleClick, onDraggingChange }: CubeProps) => {
+let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleClick, onTransformingChange, onPositionChange }: CubeProps) => {
 	let meshRef = useRef<Mesh>(null!)
 
 	let clampToFloor = () => {
@@ -57,6 +58,13 @@ let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleClick, on
 		mesh.position.y = mesh.scale.y / 2
 	}
 
+	let handleObjectChange = () => {
+		if (mode === "translate") clampToFloor()
+		else if (mode === "scale") clampScale()
+		let mesh = meshRef.current
+		onPositionChange(id, [mesh.position.x, mesh.position.y, mesh.position.z])
+	}
+
 	return (
 		<>
 			<mesh
@@ -81,9 +89,9 @@ let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleClick, on
 					object={meshRef}
 					mode={mode}
 					translationSnap={mode === "translate" ? gridSnap : null}
-					onObjectChange={mode === "translate" ? clampToFloor : clampScale}
-					onMouseDown={() => onDraggingChange(true)}
-					onMouseUp={() => onDraggingChange(false)}
+					onObjectChange={handleObjectChange}
+					onMouseDown={() => onTransformingChange(true)}
+					onMouseUp={() => onTransformingChange(false)}
 					showY={mode === "scale"}
 				/>
 			)}
@@ -118,6 +126,28 @@ let app = () => {
 		setMode("scale")
 	}
 
+	let updateCubePosition = (id: number, position: [number, number, number]) => {
+		setCubes((prev) => prev.map((cube) => (cube.id === id ? { ...cube, position } : cube)))
+	}
+
+	let warehouseCubes = useMemo(
+		() =>
+			cubes.map((cube) => {
+				let [x, y, z] = cube.position
+				return {
+					id: cube.id,
+					x: floorX / 2 - x,
+					y: floorY / 2 - z,
+					height: y,
+				}
+			}),
+		[cubes]
+	)
+
+	let logPositions = () => {
+		console.log(warehouseCubes)
+	}
+
 	useEffect(() => {
 		let onKeyDown = (e: KeyboardEvent) => {
 			if (!editing) return
@@ -133,6 +163,7 @@ let app = () => {
 			<div style={{ width: 140, padding: 10, background: "#eee" }}>
 				<button onClick={() => setEditing((prev) => !prev)}>{editing ? "Confirm" : "Edit"}</button>
 				<button onClick={addCube} disabled={!editing}>Cube</button>
+				<button onClick={logPositions}>Log Positions</button>
 			</div>
 			<div style={{ flex: 1 }}>
 				<Canvas>
@@ -148,7 +179,8 @@ let app = () => {
 							editing={editing}
 							onSelect={selectCube}
 							onDoubleClick={doubleClickCube}
-							onDraggingChange={setTransforming}
+							onTransformingChange={setTransforming}
+							onPositionChange={updateCubePosition}
 						/>
 					))}
 					<color attach="background" args={["white"]} />
