@@ -1,0 +1,11 @@
+import { Canvas } from "@react-three/fiber";
+
+let app = () => {
+	return (
+		<Canvas >
+			<color attach="background" args={"black"} />
+		</Canvas >
+	)
+}
+
+export default app;
