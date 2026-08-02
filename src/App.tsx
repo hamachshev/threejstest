@@ -1,6 +1,6 @@
 import { Grid, OrbitControls, TransformControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Mesh } from "three";
 
 const floorX = 10
@@ -92,8 +92,8 @@ type CubeState = { id: number; position: [number, number, number] }
 
 let app = () => {
 	let [transforming, setTransforming] = useState(false)
-	let [cubes, setCubes] = useState<CubeState[]>([{ id: nextId++, position: [0, cubeHalf, 0] }])
-	let [selectedId, setSelectedId] = useState(cubes[0].id)
+	let [cubes, setCubes] = useState<CubeState[]>(() => [{ id: nextId++, position: [0, cubeHalf, 0] }])
+	let [selectedId, setSelectedId] = useState<number | null>(() => cubes[0].id)
 	let [mode, setMode] = useState<TransformMode>("translate")
 
 	let addCube = () => {
@@ -113,6 +113,15 @@ let app = () => {
 		setSelectedId(id)
 		setMode("scale")
 	}
+
+	useEffect(() => {
+		let onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== "Delete" && e.key !== "Backspace") return
+			setCubes((prev) => prev.filter((cube) => cube.id !== selectedId))
+		}
+		window.addEventListener("keydown", onKeyDown)
+		return () => window.removeEventListener("keydown", onKeyDown)
+	}, [selectedId])
 
 	return (
 		<div style={{ display: "flex", width: "100%", height: "100%" }}>
