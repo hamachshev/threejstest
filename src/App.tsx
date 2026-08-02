@@ -19,12 +19,13 @@ type CubeProps = {
 	position: [number, number, number]
 	selected: boolean
 	mode: TransformMode
+	editing: boolean
 	onSelect: (id: number) => void
 	onDoubleClick: (id: number) => void
 	onDraggingChange: (dragging: boolean) => void
 }
 
-let Cube = ({ id, position, selected, mode, onSelect, onDoubleClick, onDraggingChange }: CubeProps) => {
+let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleClick, onDraggingChange }: CubeProps) => {
 	let meshRef = useRef<Mesh>(null!)
 
 	let clampToFloor = () => {
@@ -62,18 +63,20 @@ let Cube = ({ id, position, selected, mode, onSelect, onDoubleClick, onDraggingC
 				ref={meshRef}
 				position={position}
 				onClick={(e) => {
+					if (!editing) return
 					e.stopPropagation()
 					onSelect(id)
 				}}
 				onDoubleClick={(e) => {
+					if (!editing) return
 					e.stopPropagation()
 					onDoubleClick(id)
 				}}
 			>
 				<boxGeometry args={[1, 1, 1]} />
-				<meshPhongMaterial color={selected ? "orange" : "blue"} />
+				<meshPhongMaterial color={selected && editing ? "orange" : "blue"} />
 			</mesh>
-			{selected && (
+			{selected && editing && (
 				<TransformControls
 					object={meshRef}
 					mode={mode}
@@ -95,6 +98,7 @@ let app = () => {
 	let [cubes, setCubes] = useState<CubeState[]>(() => [{ id: nextId++, position: [0, cubeHalf, 0] }])
 	let [selectedId, setSelectedId] = useState<number | null>(() => cubes[0].id)
 	let [mode, setMode] = useState<TransformMode>("translate")
+	let [editing, setEditing] = useState(false)
 
 	let addCube = () => {
 		let id = nextId++
@@ -116,17 +120,19 @@ let app = () => {
 
 	useEffect(() => {
 		let onKeyDown = (e: KeyboardEvent) => {
+			if (!editing) return
 			if (e.key !== "Delete" && e.key !== "Backspace") return
 			setCubes((prev) => prev.filter((cube) => cube.id !== selectedId))
 		}
 		window.addEventListener("keydown", onKeyDown)
 		return () => window.removeEventListener("keydown", onKeyDown)
-	}, [selectedId])
+	}, [selectedId, editing])
 
 	return (
 		<div style={{ display: "flex", width: "100%", height: "100%" }}>
 			<div style={{ width: 140, padding: 10, background: "#eee" }}>
-				<button onClick={addCube}>Cube</button>
+				<button onClick={() => setEditing((prev) => !prev)}>{editing ? "Confirm" : "Edit"}</button>
+				<button onClick={addCube} disabled={!editing}>Cube</button>
 			</div>
 			<div style={{ flex: 1 }}>
 				<Canvas>
@@ -139,6 +145,7 @@ let app = () => {
 							position={cube.position}
 							selected={cube.id === selectedId}
 							mode={mode}
+							editing={editing}
 							onSelect={selectCube}
 							onDoubleClick={doubleClickCube}
 							onDraggingChange={setTransforming}
