@@ -67,6 +67,10 @@ let app = () => {
 				onAddBin={() => addItem("bin", binHalf)}
 				onLogPositions={logPositions}
 				setFloorShape={setFloorShape}
+				items={items}
+				selectedId={selectedId}
+				setSelectedId={setSelectedId}
+				setMode={setMode}
 			/>
 			<div style={{ flex: 1 }}>
 				<MapCanvas
