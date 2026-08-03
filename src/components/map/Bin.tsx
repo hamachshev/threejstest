@@ -4,7 +4,6 @@ import type { Mesh } from "three";
 import { footprintInPolygon } from "../../utils/map/floorContainment";
 import { binHalf, gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
-import { mod } from "three/tsl";
 
 export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onPositionChange }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)

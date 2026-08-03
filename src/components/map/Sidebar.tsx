@@ -14,7 +14,7 @@ type SidebarProps = {
 	items: Item[]
 	selectedId: number | null
 	setSelectedId: Dispatch<SetStateAction<number | null>>
-	setMode: Dispatch<SetStateAction<TransformMode | null>>
+	setMode: Dispatch<SetStateAction<TransformMode>>
 }
 
 let itemTypeLabels: Record<Item["type"], string> = { cube: "Cubes", bin: "Bins" }
