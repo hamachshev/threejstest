@@ -1,22 +1,29 @@
 import { TransformControls } from "@react-three/drei";
 import { useRef } from "react";
 import type { Mesh } from "three";
-import { floorX, floorY, gridSnap, minScale } from "../constants";
-import type { ItemProps } from "../constants";
+import { footprintInPolygon } from "../../utils/map/floorContainment";
+import { binHalf, gridSnap, minScale } from "../../constants";
+import type { ItemProps } from "../../types";
 
-export let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleClick, onTransformingChange, onPositionChange }: ItemProps) => {
+export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onPositionChange }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)
+	let lastValidPosition = useRef({ x: position[0], z: position[2] })
+	let lastValidScale = useRef({ x: 1, y: 1, z: 1 })
 
 	let clampToFloor = () => {
 		let mesh = meshRef.current
 		if (!mesh) return
 		let halfX = mesh.scale.x / 2
-		let halfY = mesh.scale.y / 2
+		let halfY = mesh.scale.y * binHalf
 		let halfZ = mesh.scale.z / 2
-		let maxX = floorX / 2 - halfX
-		let maxZ = floorY / 2 - halfZ
-		mesh.position.x = Math.max(-maxX, Math.min(maxX, mesh.position.x))
-		mesh.position.z = Math.max(-maxZ, Math.min(maxZ, mesh.position.z))
+
+		if (footprintInPolygon(mesh.position.x, mesh.position.z, halfX, halfZ, floorPolygon)) {
+			lastValidPosition.current = { x: mesh.position.x, z: mesh.position.z }
+		} else {
+			mesh.position.x = lastValidPosition.current.x
+			mesh.position.z = lastValidPosition.current.z
+		}
+
 		if (mesh.position.y < halfY) mesh.position.y = halfY
 	}
 
@@ -27,13 +34,15 @@ export let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleCl
 		mesh.scale.y = Math.max(minScale, mesh.scale.y)
 		mesh.scale.z = Math.max(minScale, mesh.scale.z)
 
-		let maxScaleX = 2 * Math.min(floorX / 2 - mesh.position.x, mesh.position.x + floorX / 2)
-		let maxScaleZ = 2 * Math.min(floorY / 2 - mesh.position.z, mesh.position.z + floorY / 2)
-		mesh.scale.x = Math.min(mesh.scale.x, Math.max(minScale, maxScaleX))
-		mesh.scale.z = Math.min(mesh.scale.z, Math.max(minScale, maxScaleZ))
-
-		// keep resting on the floor instead of scaling through/off of it
-		mesh.position.y = mesh.scale.y / 2
+		let halfX = mesh.scale.x / 2
+		let halfZ = mesh.scale.z / 2
+		if (footprintInPolygon(mesh.position.x, mesh.position.z, halfX, halfZ, floorPolygon)) {
+			lastValidScale.current = { x: mesh.scale.x, y: mesh.scale.y, z: mesh.scale.z }
+		} else {
+			mesh.scale.x = lastValidScale.current.x
+			mesh.scale.y = lastValidScale.current.y
+			mesh.scale.z = lastValidScale.current.z
+		}
 	}
 
 	let handleObjectChange = () => {
@@ -59,8 +68,8 @@ export let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleCl
 					onDoubleClick(id)
 				}}
 			>
-				<boxGeometry args={[1, 1, 1]} />
-				<meshPhongMaterial color={selected && editing ? "orange" : "blue"} transparent opacity={0.35} />
+				<boxGeometry args={[1, binHalf * 2, 1]} />
+				<meshPhongMaterial color={selected && editing ? "orange" : "green"} />
 			</mesh>
 			{selected && editing && (
 				<TransformControls
@@ -70,7 +79,6 @@ export let Cube = ({ id, position, selected, mode, editing, onSelect, onDoubleCl
 					onObjectChange={handleObjectChange}
 					onMouseDown={() => onTransformingChange(true)}
 					onMouseUp={() => onTransformingChange(false)}
-					showY={mode === "scale"}
 				/>
 			)}
 		</>
