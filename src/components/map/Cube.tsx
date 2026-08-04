@@ -94,7 +94,7 @@ export let Cube = ({ id, position, selected, mode, editing, floorPolygon, onSele
 				}}
 			>
 				<boxGeometry args={[1, 1, 1]} />
-				<meshPhongMaterial color={selected && editing ? "orange" : "blue"} transparent opacity={0.35} />
+				<meshPhongMaterial color={selected ? "orange" : "blue"} transparent opacity={0.35} />
 			</mesh>
 			{selected && editing && (
 				<TransformControls

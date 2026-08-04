@@ -91,7 +91,7 @@ export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelec
 				}}
 			>
 				<boxGeometry args={[1, binHalf * 2, 1]} />
-				<meshPhongMaterial color={selected && editing ? "orange" : "green"} />
+				<meshPhongMaterial color={selected ? "orange" : "green"} />
 			</mesh>
 			{selected && editing && (
 				<TransformControls

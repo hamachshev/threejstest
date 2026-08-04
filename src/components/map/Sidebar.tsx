@@ -60,7 +60,13 @@ let Sidebar = ({ editing, onToggleEditing, onAddCube, onAddBin, onLogPositions, 
 
 
 	return (
-		<div style={{ width: 140, padding: 10, background: "#eee" }}>
+		<div
+			style={{ width: 140, padding: 10, background: "#eee" }}
+			onClick={(e) => {
+				if ((e.target as HTMLElement).closest("button")) return
+				setSelectedId(null)
+			}}
+		>
 			<button onClick={onToggleEditing}>{editing ? "Confirm" : "Edit"}</button>
 			<button onClick={onAddCube} disabled={!editing}>Cube</button>
 			<button onClick={onAddBin} disabled={!editing}>Bin</button>
@@ -115,7 +121,10 @@ let Sidebar = ({ editing, onToggleEditing, onAddCube, onAddBin, onLogPositions, 
 						{group.map((item) => (
 							<div
 								key={item.id}
-								onClick={() => setSelectedId(item.id)}
+								onClick={(e) => {
+									e.stopPropagation()
+									setSelectedId(item.id)
+								}}
 								onDoubleClick={() => setMode((mode) => mode === "translate" ? "scale" : "translate")}
 								style={{
 									padding: "4px 6px",
