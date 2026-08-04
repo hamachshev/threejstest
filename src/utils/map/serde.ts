@@ -52,6 +52,7 @@ export let onImport = async (file: File): Promise<ImportResult | null> => {
 			items: itemChildren.map((child) => ({
 				type: child.userData.type as ItemType,
 				position: child.position.toArray(),
+				scale: child.scale.toArray(),
 			})),
 			floorShape: floorChild ? shapeFromFloorPolygon(floorChild.userData.floorPolygon) : null,
 		}

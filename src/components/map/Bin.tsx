@@ -5,10 +5,10 @@ import { footprintInPolygon } from "../../utils/map/floorContainment";
 import { binHalf, gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
 
-export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onPositionChange }: ItemProps) => {
+export let Bin = ({ id, position, scale, selected, mode, editing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)
 	let lastValidPosition = useRef({ x: position[0], z: position[2] })
-	let lastValidScale = useRef({ x: 1, y: 1, z: 1 })
+	let lastValidScale = useRef({ x: scale[0], y: scale[1], z: scale[2] })
 	let lastValidScalePosition = useRef({ x: position[0], z: position[2] })
 	// position of the face opposite whichever side is being dragged, captured when
 	// a scale drag starts, so the box grows from that fixed side instead of
@@ -70,7 +70,10 @@ export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelec
 		if (mode === "translate") clampToFloor()
 		else if (mode === "scale") clampScale()
 		let mesh = meshRef.current
-		onPositionChange(id, [mesh.position.x, mesh.position.y, mesh.position.z])
+		onUpdateItem(id, {
+			position: [mesh.position.x, mesh.position.y, mesh.position.z],
+			scale: [mesh.scale.x, mesh.scale.y, mesh.scale.z],
+		})
 	}
 
 	return (
@@ -78,6 +81,7 @@ export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelec
 			<mesh
 				ref={meshRef}
 				position={position}
+				scale={scale}
 				userData={{ type: "bin" }}
 				onClick={(e) => {
 					if (!editing) return

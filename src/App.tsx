@@ -5,22 +5,24 @@ import type { Item, TransformMode } from "./types";
 import MapCanvas from "./components/map/MapCanvas";
 import Sidebar from "./components/map/Sidebar";
 import { onExport, onImport } from "./utils/map/serde";
+import { mapKeyboardEventListener } from "./utils/map/eventListeners";
 
 let nextId = 1
 
 let app = () => {
-	let [items, setItems] = useState<Item[]>(() => [{ type: "cube", id: nextId++, position: [0, cubeHalf, 0] }])
+	let [items, setItems] = useState<Item[]>(() => [{ type: "cube", id: nextId++, position: [0, cubeHalf, 0], scale: [1, 1, 1] }])
 	let [selectedId, setSelectedId] = useState<number | null>(() => items[0].id)
 	let [mode, setMode] = useState<TransformMode>("translate")
 	let [editing, setEditing] = useState(false)
 	let [floorShape, setFloorShape] = useState<Shape | null>(null)
 	let sceneRef = useRef<Scene | null>(null)
+	let clipboardRef = useRef<Omit<Item, "id"> | null>(null)
 
 
 	let addItem = (type: Item["type"], y: number) => {
 		let id = nextId++
 		let x = ((items.length * 1.5) % floorX) - floorX / 2
-		setItems([...items, { type, id, position: [x, y, 0] }])
+		setItems([...items, { type, id, position: [x, y, 0], scale: [1, 1, 1] }])
 		setSelectedId(id)
 		setMode("translate")
 	}
@@ -52,14 +54,20 @@ let app = () => {
 	}
 
 	useEffect(() => {
-		let onKeyDown = (e: KeyboardEvent) => {
-			if (!editing) return
-			if (e.key !== "Delete" && e.key !== "Backspace") return
-			setItems((prev) => prev.filter((item) => item.id !== selectedId))
-		}
+		let onKeyDown = (e: KeyboardEvent) => mapKeyboardEventListener(e, {
+			editing,
+			items,
+			selectedId,
+			setItems,
+			setSelectedId,
+			setMode,
+			setEditing,
+			clipboardRef,
+			getNextId: () => nextId++,
+		})
 		window.addEventListener("keydown", onKeyDown)
 		return () => window.removeEventListener("keydown", onKeyDown)
-	}, [selectedId, editing])
+	}, [selectedId, editing, items])
 
 	return (
 		<div style={{ display: "flex", width: "100%", height: "100%" }}>
@@ -94,6 +102,7 @@ let app = () => {
 					editing={editing}
 					floorShape={floorShape}
 					sceneRef={sceneRef}
+					setEditing={setEditing}
 				/>
 			</div>
 		</div>

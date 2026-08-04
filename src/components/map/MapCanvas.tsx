@@ -8,7 +8,7 @@ import { Cube } from "./Cube";
 import { Bin } from "./Bin";
 import GridStencilMask from "./GridStencilMask";
 import { floorX, floorY, floorThickness, gridSnap } from "../../constants";
-import type { FloorPoint, Item, ItemProps, TransformMode } from "../../types";
+import type { FloorPoint, Item, ItemProps, ItemUpdate, TransformMode } from "../../types";
 
 type MapCanvasProps = {
 	items: Item[]
@@ -17,12 +17,13 @@ type MapCanvasProps = {
 	setSelectedId: Dispatch<SetStateAction<number | null>>
 	mode: TransformMode
 	setMode: Dispatch<SetStateAction<TransformMode>>
+	setEditing: Dispatch<SetStateAction<boolean>>
 	editing: boolean
 	floorShape: Shape | null
 	sceneRef: RefObject<Scene | null>
 }
 
-let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, editing, floorShape, sceneRef }: MapCanvasProps) => {
+let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, editing, floorShape, sceneRef, setEditing }: MapCanvasProps) => {
 	let gridRef = useRef<Mesh>(null)
 	let [transforming, setTransforming] = useState(false)
 
@@ -52,8 +53,8 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 		setMode("scale")
 	}
 
-	let updateItemPosition = (id: number, position: [number, number, number]) => {
-		setItems((prev) => prev.map((item) => (item.id === id ? { ...item, position } : item)))
+	let updateItem = (id: number, changes: ItemUpdate) => {
+		setItems((prev) => prev.map((item) => (item.id === id ? { ...item, ...changes } : item)))
 	}
 
 	return (
@@ -61,6 +62,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 			camera={{ position: [10, 10, 10], fov: 50 }}
 			gl={{ stencil: true }}
 			onCreated={(state) => { sceneRef.current = state.scene }}
+			onDoubleClick={() => { if (!editing) setEditing(true) }}
 		>
 			<ambientLight intensity={0.5} />
 			<directionalLight position={[5, 5, 5]} intensity={1} />
@@ -68,6 +70,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 				let props: ItemProps = {
 					id: item.id,
 					position: item.position,
+					scale: item.scale,
 					selected: item.id === selectedId,
 					mode,
 					editing,
@@ -75,7 +78,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 					onSelect: selectItem,
 					onDoubleClick: doubleClickItem,
 					onTransformingChange: setTransforming,
-					onPositionChange: updateItemPosition,
+					onUpdateItem: updateItem,
 				}
 				return item.type === "cube" ? <Cube key={item.id} {...props} /> : <Bin key={item.id} {...props} />
 			})}
