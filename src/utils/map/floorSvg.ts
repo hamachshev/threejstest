@@ -1,5 +1,6 @@
 import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader.js"
 import { Shape } from "three"
+import type { FloorPoint } from "../../types"
 
 // Recenters the shape on its own bounding-box center, so downstream code
 // (grid, extrusion, floor polygon) can all assume the floor sits at the origin.
@@ -31,4 +32,14 @@ export let parseFloorSvg = (svgText: string): Shape | null => {
 export let readFloorSvgFile = async (file: File): Promise<Shape | null> => {
 	let text = await file.text()
 	return parseFloorSvg(text)
+}
+
+export let shapeFromFloorPolygon = (polygon: FloorPoint[]): Shape => {
+	let shape = new Shape()
+	polygon.forEach((p, i) => {
+		if (i === 0) shape.moveTo(p.x, p.z)
+		else shape.lineTo(p.x, p.z)
+	})
+	shape.closePath()
+	return shape
 }

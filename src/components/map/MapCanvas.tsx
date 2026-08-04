@@ -81,7 +81,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 			})}
 			<color attach="background" args={["white"]} />
 			{floorShape ? (
-				<mesh rotation={[Math.PI / 2, 0, 0]}>
+				<mesh rotation={[Math.PI / 2, 0, 0]} userData={{ type: "floor", floorPolygon }}>
 					<extrudeGeometry args={[floorShape, { depth: floorThickness, bevelEnabled: false }]} />
 					<meshPhongMaterial
 						color={"gray"}
@@ -93,7 +93,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 					/>
 				</mesh>
 			) : (
-				<mesh position={[0, -floorThickness / 2, 0]}>
+				<mesh position={[0, -floorThickness / 2, 0]} userData={{ type: "floor", floorPolygon }}>
 					<boxGeometry args={[floorX, floorThickness, floorY]} />
 					<meshPhongMaterial
 						color={"gray"}

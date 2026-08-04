@@ -78,6 +78,7 @@ export let Bin = ({ id, position, selected, mode, editing, floorPolygon, onSelec
 			<mesh
 				ref={meshRef}
 				position={position}
+				userData={{ type: "bin" }}
 				onClick={(e) => {
 					if (!editing) return
 					e.stopPropagation()

@@ -4,7 +4,7 @@ import { binHalf, cubeHalf, floorX, floorY } from "./constants";
 import type { Item, TransformMode } from "./types";
 import MapCanvas from "./components/map/MapCanvas";
 import Sidebar from "./components/map/Sidebar";
-import { onExport } from "./utils/map/export";
+import { onExport, onImport } from "./utils/map/serde";
 
 let nextId = 1
 
@@ -75,6 +75,13 @@ let app = () => {
 				setSelectedId={setSelectedId}
 				setMode={setMode}
 				onExport={async () => onExport(sceneRef)}
+				onImport={async (file) => {
+					let imported = await onImport(file)
+					if (!imported) return false
+					setItems(imported.items.map((item) => ({ ...item, id: nextId++ })))
+					if (imported.floorShape) setFloorShape(imported.floorShape)
+					return true
+				}}
 			/>
 			<div style={{ flex: 1 }}>
 				<MapCanvas

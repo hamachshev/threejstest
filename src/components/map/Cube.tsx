@@ -81,6 +81,7 @@ export let Cube = ({ id, position, selected, mode, editing, floorPolygon, onSele
 			<mesh
 				ref={meshRef}
 				position={position}
+				userData={{ type: "cube" }}
 				onClick={(e) => {
 					if (!editing) return
 					e.stopPropagation()

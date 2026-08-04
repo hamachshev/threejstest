@@ -2,7 +2,10 @@ export type TransformMode = "translate" | "scale"
 
 export type FloorPoint = { x: number; z: number }
 
-export type Item = { type: "cube" | "bin"; id: number; position: [number, number, number] }
+export let itemTypes = ["cube", "bin"] as const
+export type ItemType = typeof itemTypes[number]
+
+export type Item = { type: ItemType; id: number; position: [number, number, number] }
 
 export type ItemProps = {
 	id: number
