@@ -1,9 +1,9 @@
 import { Grid, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { AlwaysStencilFunc, DoubleSide, ReplaceStencilOp } from "three";
-import type { Mesh, Shape } from "three";
+import type { Mesh, Scene, Shape } from "three";
 import { useMemo, useRef, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
 import { Cube } from "./Cube";
 import { Bin } from "./Bin";
 import GridStencilMask from "./GridStencilMask";
@@ -19,9 +19,10 @@ type MapCanvasProps = {
 	setMode: Dispatch<SetStateAction<TransformMode>>
 	editing: boolean
 	floorShape: Shape | null
+	sceneRef: RefObject<Scene | null>
 }
 
-let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, editing, floorShape }: MapCanvasProps) => {
+let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, editing, floorShape, sceneRef }: MapCanvasProps) => {
 	let gridRef = useRef<Mesh>(null)
 	let [transforming, setTransforming] = useState(false)
 
@@ -56,7 +57,11 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 	}
 
 	return (
-		<Canvas camera={{ position: [10, 10, 10], fov: 50 }} gl={{ stencil: true }}>
+		<Canvas
+			camera={{ position: [10, 10, 10], fov: 50 }}
+			gl={{ stencil: true }}
+			onCreated={(state) => { sceneRef.current = state.scene }}
+		>
 			<ambientLight intensity={0.5} />
 			<directionalLight position={[5, 5, 5]} intensity={1} />
 			{items.map((item) => {

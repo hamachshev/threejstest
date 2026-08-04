@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import type { Shape } from "three";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { Scene, Shape } from "three";
 import { binHalf, cubeHalf, floorX, floorY } from "./constants";
 import type { Item, TransformMode } from "./types";
 import MapCanvas from "./components/map/MapCanvas";
 import Sidebar from "./components/map/Sidebar";
+import { onExport } from "./utils/map/export";
 
 let nextId = 1
 
@@ -13,6 +14,8 @@ let app = () => {
 	let [mode, setMode] = useState<TransformMode>("translate")
 	let [editing, setEditing] = useState(false)
 	let [floorShape, setFloorShape] = useState<Shape | null>(null)
+	let sceneRef = useRef<Scene | null>(null)
+
 
 	let addItem = (type: Item["type"], y: number) => {
 		let id = nextId++
@@ -71,6 +74,7 @@ let app = () => {
 				selectedId={selectedId}
 				setSelectedId={setSelectedId}
 				setMode={setMode}
+				onExport={async () => onExport(sceneRef)}
 			/>
 			<div style={{ flex: 1 }}>
 				<MapCanvas
@@ -82,6 +86,7 @@ let app = () => {
 					setMode={setMode}
 					editing={editing}
 					floorShape={floorShape}
+					sceneRef={sceneRef}
 				/>
 			</div>
 		</div>

@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import type { Dispatch, SetStateAction } from "react"
 import type { Shape } from "three"
 import { readFloorSvgFile } from "../../utils/map/floorSvg"
@@ -10,6 +10,7 @@ type SidebarProps = {
 	onAddCube: () => void
 	onAddBin: () => void
 	onLogPositions: () => void
+	onExport: () => Promise<boolean>
 	setFloorShape: Dispatch<SetStateAction<Shape | null>>
 	items: Item[]
 	selectedId: number | null
@@ -19,13 +20,21 @@ type SidebarProps = {
 
 let itemTypeLabels: Record<Item["type"], string> = { cube: "Cubes", bin: "Bins" }
 
-let Sidebar = ({ editing, onToggleEditing, onAddCube, onAddBin, onLogPositions, setFloorShape, items, selectedId, setSelectedId, setMode }: SidebarProps) => {
+let Sidebar = ({ editing, onToggleEditing, onAddCube, onAddBin, onLogPositions, setFloorShape, items, selectedId, setSelectedId, setMode, onExport }: SidebarProps) => {
 	let fileInputRef = useRef<HTMLInputElement>(null)
+	let [exportStatus, setExportStatus] = useState<"idle" | "success" | "error">("idle")
+
+	let handleExport = async () => {
+		let success = await onExport()
+		setExportStatus(success ? "success" : "error")
+		setTimeout(() => setExportStatus("idle"), 2000)
+	}
 
 	let importFloorSvg = async (file: File) => {
 		let shape = await readFloorSvgFile(file)
 		if (shape) setFloorShape(shape)
 	}
+
 
 	return (
 		<div style={{ width: 140, padding: 10, background: "#eee" }}>
@@ -45,6 +54,19 @@ let Sidebar = ({ editing, onToggleEditing, onAddCube, onAddBin, onLogPositions, 
 				}}
 			/>
 			<button onClick={() => fileInputRef.current?.click()}>Import Floor SVG</button>
+			<button
+				onClick={handleExport}
+				disabled={editing}
+				style={
+					exportStatus === "success"
+						? { background: "#4caf50", color: "white" }
+						: exportStatus === "error"
+							? { background: "#f44336", color: "white" }
+							: undefined
+				}
+			>
+				{exportStatus === "success" ? "Exported!" : exportStatus === "error" ? "Failed to export" : "Export"}
+			</button>
 
 			{(["cube", "bin"] as const).map((type) => {
 				let group = items.filter((item) => item.type === type)
