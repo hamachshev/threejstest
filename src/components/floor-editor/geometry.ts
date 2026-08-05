@@ -17,6 +17,7 @@ export const VIEW_SIZE = 640
 export const CENTER = VIEW_SIZE / 2
 export const CLOSE_THRESHOLD = 0.5
 export const SEGMENT_HIT_THRESHOLD = 0.35
+export const MAJOR_GRID_INTERVAL = 5
 
 export let snap = (v: number) => Math.round(v / gridSnap) * gridSnap
 export let snapPoint = (p: WorldPoint) => worldPoint(snap(p.x), snap(p.y))

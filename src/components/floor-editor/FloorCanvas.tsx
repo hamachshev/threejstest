@@ -2,6 +2,7 @@ import { useRef, useState } from "react"
 import { Stage, Layer, Line, Circle, Label, Tag, Text } from "react-konva"
 import type Konva from "konva"
 import { Grid } from "./Grid"
+import { Compass } from "./Compass"
 import {
 	CLOSE_THRESHOLD,
 	SEGMENT_HIT_THRESHOLD,
@@ -90,6 +91,7 @@ export let FloorCanvas = ({ points, closed, selectedSegment, segments, onAddPoin
 			onMouseLeave={() => setPointer(null)}
 		>
 			<Grid />
+			<Compass />
 
 			<Layer>
 				{closed && segments.map((segment, i) => {
