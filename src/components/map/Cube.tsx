@@ -6,7 +6,7 @@ import { gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
 import { DimensionLabels } from "./DimensionLabels";
 
-export let Cube = ({ id, position, scale, selected, mode, editing, setEditing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem }: ItemProps) => {
+export let Cube = ({ id, position, scale, selected, mode, editing, setEditing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem, onBeginTransform }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)
 	let lastValidPosition = useRef({ x: position[0], z: position[2] })
 	let lastValidScale = useRef({ x: scale[0], y: scale[1], z: scale[2] })
@@ -108,6 +108,7 @@ export let Cube = ({ id, position, scale, selected, mode, editing, setEditing, f
 					translationSnap={mode === "translate" ? gridSnap : null}
 					onObjectChange={handleObjectChange}
 					onMouseDown={() => {
+						onBeginTransform()
 						onTransformingChange(true)
 						if (mode === "scale") beginScale()
 					}}

@@ -1,25 +1,41 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { Scene, Shape } from "three";
 import { binHalf, cubeHalf, floorX, floorY } from "./constants";
-import type { Item, TransformMode } from "./types";
+import type { Item, SceneState, TransformMode } from "./types";
 import MapCanvas from "./components/map/MapCanvas";
 import Sidebar from "./components/map/Sidebar";
 import { onExport, onImport } from "./utils/map/serde";
 import { mapKeyboardEventListener } from "./utils/map/eventListeners";
+import { useClipboard, useHistory } from "./hooks/useEditorHistory";
 
 let nextId = 1
 
 let app = () => {
-	let [items, setItems] = useState<Item[]>(() => [{ type: "cube", id: nextId++, position: [0, cubeHalf, 0], scale: [1, 1, 1] }])
+
+	let [scene, setScene] = useState<SceneState>(() => ({
+		items: [{ type: "cube", id: nextId++, position: [0, cubeHalf, 0], scale: [1, 1, 1] }],
+		floorShape: null,
+	}))
+	let { items, floorShape } = scene
+
+	let setItems: Dispatch<SetStateAction<Item[]>> = (update) => {
+		setScene((prev) => ({ ...prev, items: typeof update === "function" ? (update as (prev: Item[]) => Item[])(prev.items) : update }))
+	}
+	let setFloorShape: Dispatch<SetStateAction<Shape | null>> = (update) => {
+		setScene((prev) => ({ ...prev, floorShape: typeof update === "function" ? (update as (prev: Shape | null) => Shape | null)(prev.floorShape) : update }))
+	}
+
 	let [selectedId, setSelectedId] = useState<number | null>(() => items[0].id)
 	let [mode, setMode] = useState<TransformMode>("translate")
 	let [editing, setEditing] = useState(false)
-	let [floorShape, setFloorShape] = useState<Shape | null>(null)
 	let sceneRef = useRef<Scene | null>(null)
-	let clipboardRef = useRef<Omit<Item, "id"> | null>(null)
+	let { clipboardRef, copy } = useClipboard()
+	let { pushHistory, undo, redo } = useHistory(scene, setScene)
 
 
 	let addItem = (type: Item["type"], y: number) => {
+		pushHistory()
 		let id = nextId++
 		let x = ((items.length * 1.5) % floorX) - floorX / 2
 		setItems([...items, { type, id, position: [x, y, 0], scale: [1, 1, 1] }])
@@ -64,10 +80,14 @@ let app = () => {
 			setEditing,
 			clipboardRef,
 			getNextId: () => nextId++,
+			copy,
+			pushHistory,
+			undo,
+			redo,
 		})
 		window.addEventListener("keydown", onKeyDown)
 		return () => window.removeEventListener("keydown", onKeyDown)
-	}, [selectedId, editing, items])
+	}, [selectedId, editing, scene])
 
 	return (
 		<div style={{ display: "flex", width: "100%", height: "100%" }}>
@@ -86,6 +106,7 @@ let app = () => {
 				onImport={async (file) => {
 					let imported = await onImport(file)
 					if (!imported) return false
+					pushHistory()
 					setItems(imported.items.map((item) => ({ ...item, id: nextId++ })))
 					if (imported.floorShape) setFloorShape(imported.floorShape)
 					return true
@@ -103,6 +124,7 @@ let app = () => {
 					floorShape={floorShape}
 					sceneRef={sceneRef}
 					setEditing={setEditing}
+					onBeginTransform={pushHistory}
 				/>
 			</div>
 		</div>

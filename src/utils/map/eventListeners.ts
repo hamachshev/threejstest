@@ -12,12 +12,17 @@ export type MapKeyboardEventListenerParams = {
 	setEditing: Dispatch<SetStateAction<boolean>>
 	clipboardRef: RefObject<Omit<Item, "id"> | null>
 	getNextId: () => number
+	copy: (item: Item) => void
+	pushHistory: () => void
+	undo: () => void
+	redo: () => void
 }
 
-export let mapKeyboardEventListener = (e: KeyboardEvent, { editing, items, selectedId, setItems, setSelectedId, setMode, clipboardRef, getNextId, setEditing }: MapKeyboardEventListenerParams) => {
+export let mapKeyboardEventListener = (e: KeyboardEvent, { editing, items, selectedId, setItems, setSelectedId, setMode, clipboardRef, getNextId, setEditing, copy, pushHistory, undo, redo }: MapKeyboardEventListenerParams) => {
 	if (!editing) return
 
 	if (e.key === "Delete" || e.key === "Backspace") {
+		pushHistory()
 		setItems((prev) => prev.filter((item) => item.id !== selectedId))
 		return
 	}
@@ -34,15 +39,12 @@ export let mapKeyboardEventListener = (e: KeyboardEvent, { editing, items, selec
 		let selectedItem = items.find((item) => item.id === selectedId)
 		if (!selectedItem) return
 		e.preventDefault()
-		clipboardRef.current = {
-			type: selectedItem.type,
-			position: [...selectedItem.position],
-			scale: [...selectedItem.scale],
-		}
+		copy(selectedItem)
 	} else if (e.key.toLowerCase() === "v") {
 		let copied = clipboardRef.current
 		if (!copied) return
 		e.preventDefault()
+		pushHistory()
 		let id = getNextId()
 		let [x, y, z] = copied.position
 		setItems((prev) => [
@@ -51,6 +53,13 @@ export let mapKeyboardEventListener = (e: KeyboardEvent, { editing, items, selec
 		])
 		setSelectedId(id)
 		setMode("translate")
+	} else if (e.key.toLowerCase() === "z") {
+		e.preventDefault()
+		if (e.shiftKey) redo()
+		else undo()
+	} else if (e.key.toLowerCase() === "y") {
+		e.preventDefault()
+		redo()
 	} else if (e.key.toLowerCase() === "s") {
 		e.preventDefault()
 		setEditing(false)

@@ -22,9 +22,10 @@ type MapCanvasProps = {
 	editing: boolean
 	floorShape: Shape | null
 	sceneRef: RefObject<Scene | null>
+	onBeginTransform: () => void
 }
 
-let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, editing, floorShape, sceneRef, setEditing }: MapCanvasProps) => {
+let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, editing, floorShape, sceneRef, setEditing, onBeginTransform }: MapCanvasProps) => {
 	let gridRef = useRef<Mesh>(null)
 	let [transforming, setTransforming] = useState(false)
 
@@ -86,6 +87,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 					onDoubleClick: doubleClickItem,
 					onTransformingChange: setTransforming,
 					onUpdateItem: updateItem,
+					onBeginTransform,
 				}
 				return item.type === "cube" ? <Cube key={item.id} {...props} /> : <Bin key={item.id} {...props} />
 			})}
