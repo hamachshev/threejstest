@@ -1,4 +1,5 @@
-import { Grid, OrbitControls } from "@react-three/drei";
+import { Grid, GizmoHelper, OrbitControls } from "@react-three/drei";
+import { CompassGizmo } from "./CompassGizmo";
 import { Canvas } from "@react-three/fiber";
 import { AlwaysStencilFunc, DoubleSide, ReplaceStencilOp } from "three";
 import type { Mesh, Scene, Shape } from "three";
@@ -110,6 +111,9 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 			<Grid ref={gridRef} position={[0, 0.001, 0]} args={[floorBounds.width, floorBounds.depth]} cellSize={gridSnap} />
 			<GridStencilMask gridRef={gridRef} />
 			<OrbitControls enabled={!transforming} />
+			<GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+				<CompassGizmo />
+			</GizmoHelper>
 		</Canvas>
 	)
 }
