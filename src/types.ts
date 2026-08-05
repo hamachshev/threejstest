@@ -16,6 +16,7 @@ export type ItemProps = {
 	selected: boolean
 	mode: TransformMode
 	editing: boolean
+	setEditing: (editing: boolean) => void
 	floorPolygon: FloorPoint[]
 	onSelect: (id: number) => void
 	onDoubleClick: (id: number) => void

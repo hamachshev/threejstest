@@ -5,7 +5,7 @@ import { footprintInPolygon } from "../../utils/map/floorContainment";
 import { gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
 
-export let Cube = ({ id, position, scale, selected, mode, editing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem }: ItemProps) => {
+export let Cube = ({ id, position, scale, selected, mode, editing, setEditing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)
 	let lastValidPosition = useRef({ x: position[0], z: position[2] })
 	let lastValidScale = useRef({ x: scale[0], y: scale[1], z: scale[2] })
@@ -87,14 +87,13 @@ export let Cube = ({ id, position, scale, selected, mode, editing, floorPolygon,
 				scale={scale}
 				userData={{ type: "cube" }}
 				onClick={(e) => {
-					if (!editing) return
 					e.stopPropagation()
 					onSelect(id)
 				}}
 				onDoubleClick={(e) => {
-					if (!editing) return
 					e.stopPropagation()
-					onDoubleClick(id)
+					if (!editing) setEditing(true)
+					else onDoubleClick(id)
 				}}
 			>
 				<boxGeometry args={[1, 1, 1]} />

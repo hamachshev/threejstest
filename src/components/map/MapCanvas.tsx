@@ -63,7 +63,12 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 			camera={{ position: [10, 10, 10], fov: 50 }}
 			gl={{ stencil: true }}
 			onCreated={(state) => { sceneRef.current = state.scene }}
-			onDoubleClick={() => { if (!editing) setEditing(true) }}
+			onPointerMissed={() => {
+				if (editing) {
+					setEditing(false)
+					setSelectedId(null)
+				}
+			}}
 		>
 			<ambientLight intensity={0.5} />
 			<directionalLight position={[5, 5, 5]} intensity={1} />
@@ -75,6 +80,7 @@ let MapCanvas = ({ items, setItems, selectedId, setSelectedId, mode, setMode, ed
 					selected: item.id === selectedId,
 					mode,
 					editing,
+					setEditing,
 					floorPolygon,
 					onSelect: selectItem,
 					onDoubleClick: doubleClickItem,
