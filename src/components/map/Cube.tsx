@@ -4,6 +4,7 @@ import type { Mesh } from "three";
 import { footprintInPolygon } from "../../utils/map/floorContainment";
 import { gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
+import { DimensionLabels } from "./DimensionLabels";
 
 export let Cube = ({ id, position, scale, selected, mode, editing, setEditing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)
@@ -99,6 +100,7 @@ export let Cube = ({ id, position, scale, selected, mode, editing, setEditing, f
 				<boxGeometry args={[1, 1, 1]} />
 				<meshPhongMaterial color={selected ? "orange" : "blue"} transparent opacity={0.35} />
 			</mesh>
+			{selected && <DimensionLabels position={position} size={scale} />}
 			{selected && editing && (
 				<TransformControls
 					object={meshRef}

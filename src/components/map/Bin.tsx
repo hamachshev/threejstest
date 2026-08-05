@@ -4,6 +4,7 @@ import type { Mesh } from "three";
 import { footprintInPolygon } from "../../utils/map/floorContainment";
 import { binHalf, gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
+import { DimensionLabels } from "./DimensionLabels";
 
 export let Bin = ({ id, position, scale, selected, mode, editing, setEditing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem }: ItemProps) => {
 	let meshRef = useRef<Mesh>(null!)
@@ -96,6 +97,7 @@ export let Bin = ({ id, position, scale, selected, mode, editing, setEditing, fl
 				<boxGeometry args={[1, binHalf * 2, 1]} />
 				<meshPhongMaterial color={selected ? "orange" : "green"} />
 			</mesh>
+			{selected && <DimensionLabels position={position} size={[scale[0], scale[1] * binHalf * 2, scale[2]]} />}
 			{selected && editing && (
 				<TransformControls
 					object={meshRef}

@@ -2,18 +2,19 @@ import { useGizmoContext } from "@react-three/drei"
 import type { ThreeEvent } from "@react-three/fiber"
 import { useMemo, useState } from "react"
 import { CanvasTexture } from "three"
+import { axisColors } from "../../constants"
 
 // N/S/E/W compass gizmo (drop-in replacement for drei's GizmoViewport, which
-// only labels the +X/+Y/+Z heads). 
+// only labels the +X/+Y/+Z heads).
 //  North is -z, East is +x — see MapCanvas's floor coordinate mapping.
 
 let AXES: { label: string; position: [number, number, number]; color: string }[] = [
-	{ label: "N", position: [0, 0, -1], color: "#2080ff" },
-	{ label: "S", position: [0, 0, 1], color: "#2080ff" },
-	{ label: "U", position: [0, 1, 0], color: "#20df80" },
-	{ label: "D", position: [0, -1, 0], color: "#20df80" },
-	{ label: "E", position: [1, 0, 0], color: "#ff2060" },
-	{ label: "W", position: [-1, 0, 0], color: "#ff2060" },
+	{ label: "N", position: [0, 0, -1], color: axisColors.z },
+	{ label: "S", position: [0, 0, 1], color: axisColors.z },
+	{ label: "U", position: [0, 1, 0], color: axisColors.y },
+	{ label: "D", position: [0, -1, 0], color: axisColors.y },
+	{ label: "E", position: [1, 0, 0], color: axisColors.x },
+	{ label: "W", position: [-1, 0, 0], color: axisColors.x },
 ]
 
 let Axis = ({ color, rotation }: { color: string; rotation: [number, number, number] }) => (
@@ -74,9 +75,9 @@ let AxisHead = ({ position, label, color }: { position: [number, number, number]
 
 export let CompassGizmo = () => (
 	<group scale={40}>
-		<Axis color="#2080ff" rotation={[0, -Math.PI / 2, 0]} />
-		<Axis color="#20df80" rotation={[0, 0, Math.PI / 2]} />
-		<Axis color="#ff2060" rotation={[0, 0, 0]} />
+		<Axis color={axisColors.z} rotation={[0, -Math.PI / 2, 0]} />
+		<Axis color={axisColors.y} rotation={[0, 0, Math.PI / 2]} />
+		<Axis color={axisColors.x} rotation={[0, 0, 0]} />
 		{AXES.map((axis) => (
 			<AxisHead key={axis.label} {...axis} />
 		))}
