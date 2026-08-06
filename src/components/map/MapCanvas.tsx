@@ -91,10 +91,8 @@ let MapCanvas = ({
         sceneRef.current = state.scene;
       }}
       onPointerMissed={() => {
-        if (editing) {
-          setEditing(false);
-          setSelectedId(null);
-        }
+        setEditing(false);
+        setSelectedId(null);
       }}
     >
       <ambientLight intensity={0.5} />
