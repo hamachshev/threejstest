@@ -6,113 +6,155 @@ import { binHalf, gridSnap, minScale } from "../../constants";
 import type { ItemProps } from "../../types";
 import { DimensionLabels } from "./DimensionLabels";
 
-export let Bin = ({ id, position, scale, selected, mode, editing, setEditing, floorPolygon, onSelect, onDoubleClick, onTransformingChange, onUpdateItem, onBeginTransform }: ItemProps) => {
-	let meshRef = useRef<Mesh>(null!)
-	let lastValidPosition = useRef({ x: position[0], z: position[2] })
-	let lastValidScale = useRef({ x: scale[0], y: scale[1], z: scale[2] })
-	let lastValidScalePosition = useRef({ x: position[0], z: position[2] })
-	// position of the face opposite whichever side is being dragged, captured when
-	// a scale drag starts, so the box grows from that fixed side instead of
-	// expanding symmetrically from the center
-	let scaleAnchor = useRef({ x: position[0], z: position[2] })
+export let Bin = ({
+  id,
+  position,
+  scale,
+  selected,
+  mode,
+  editing,
+  setEditing,
+  floorPolygon,
+  onSelect,
+  onDoubleClick,
+  onTransformingChange,
+  onUpdateItem,
+  onBeginTransform,
+}: ItemProps) => {
+  let meshRef = useRef<Mesh>(null!);
+  let lastValidPosition = useRef({ x: position[0], z: position[2] });
+  let lastValidScale = useRef({ x: scale[0], y: scale[1], z: scale[2] });
+  let lastValidScalePosition = useRef({ x: position[0], z: position[2] });
+  // position of the face opposite whichever side is being dragged, captured when
+  // a scale drag starts, so the box grows from that fixed side instead of
+  // expanding symmetrically from the center
+  let scaleAnchor = useRef({ x: position[0], z: position[2] });
 
-	let beginScale = () => {
-		let mesh = meshRef.current
-		if (!mesh) return
-		scaleAnchor.current = {
-			x: mesh.position.x - mesh.scale.x / 2,
-			z: mesh.position.z - mesh.scale.z / 2,
-		}
-	}
+  let beginScale = () => {
+    let mesh = meshRef.current;
+    if (!mesh) return;
+    scaleAnchor.current = {
+      x: mesh.position.x - mesh.scale.x / 2,
+      z: mesh.position.z - mesh.scale.z / 2,
+    };
+  };
 
-	let clampToFloor = () => {
-		let mesh = meshRef.current
-		if (!mesh) return
-		let halfX = mesh.scale.x / 2
-		let halfY = mesh.scale.y * binHalf
-		let halfZ = mesh.scale.z / 2
+  let clampToFloor = () => {
+    let mesh = meshRef.current;
+    if (!mesh) return;
+    let halfX = mesh.scale.x / 2;
+    let halfY = mesh.scale.y * binHalf;
+    let halfZ = mesh.scale.z / 2;
 
-		if (footprintInPolygon(mesh.position.x, mesh.position.z, halfX, halfZ, floorPolygon)) {
-			lastValidPosition.current = { x: mesh.position.x, z: mesh.position.z }
-		} else {
-			mesh.position.x = lastValidPosition.current.x
-			mesh.position.z = lastValidPosition.current.z
-		}
+    if (
+      footprintInPolygon(
+        mesh.position.x,
+        mesh.position.z,
+        halfX,
+        halfZ,
+        floorPolygon,
+      )
+    ) {
+      lastValidPosition.current = { x: mesh.position.x, z: mesh.position.z };
+    } else {
+      mesh.position.x = lastValidPosition.current.x;
+      mesh.position.z = lastValidPosition.current.z;
+    }
 
-		if (mesh.position.y < halfY) mesh.position.y = halfY
-	}
+    if (mesh.position.y < halfY) mesh.position.y = halfY;
+  };
 
-	let clampScale = () => {
-		let mesh = meshRef.current
-		if (!mesh) return
-		mesh.scale.x = Math.max(minScale, mesh.scale.x)
-		mesh.scale.y = Math.max(minScale, mesh.scale.y)
-		mesh.scale.z = Math.max(minScale, mesh.scale.z)
+  let clampScale = () => {
+    let mesh = meshRef.current;
+    if (!mesh) return;
+    mesh.scale.x = Math.max(minScale, mesh.scale.x);
+    mesh.scale.y = Math.max(minScale, mesh.scale.y);
+    mesh.scale.z = Math.max(minScale, mesh.scale.z);
 
-		// anchor the opposite face so only the dragged side moves
-		mesh.position.x = scaleAnchor.current.x + mesh.scale.x / 2
-		mesh.position.z = scaleAnchor.current.z + mesh.scale.z / 2
+    // anchor the opposite face so only the dragged side moves
+    mesh.position.x = scaleAnchor.current.x + mesh.scale.x / 2;
+    mesh.position.z = scaleAnchor.current.z + mesh.scale.z / 2;
 
-		let halfX = mesh.scale.x / 2
-		let halfZ = mesh.scale.z / 2
-		if (footprintInPolygon(mesh.position.x, mesh.position.z, halfX, halfZ, floorPolygon)) {
-			lastValidScale.current = { x: mesh.scale.x, y: mesh.scale.y, z: mesh.scale.z }
-			lastValidScalePosition.current = { x: mesh.position.x, z: mesh.position.z }
-		} else {
-			mesh.scale.x = lastValidScale.current.x
-			mesh.scale.y = lastValidScale.current.y
-			mesh.scale.z = lastValidScale.current.z
-			mesh.position.x = lastValidScalePosition.current.x
-			mesh.position.z = lastValidScalePosition.current.z
-		}
-	}
+    let halfX = mesh.scale.x / 2;
+    let halfZ = mesh.scale.z / 2;
+    if (
+      footprintInPolygon(
+        mesh.position.x,
+        mesh.position.z,
+        halfX,
+        halfZ,
+        floorPolygon,
+      )
+    ) {
+      lastValidScale.current = {
+        x: mesh.scale.x,
+        y: mesh.scale.y,
+        z: mesh.scale.z,
+      };
+      lastValidScalePosition.current = {
+        x: mesh.position.x,
+        z: mesh.position.z,
+      };
+    } else {
+      mesh.scale.x = lastValidScale.current.x;
+      mesh.scale.y = lastValidScale.current.y;
+      mesh.scale.z = lastValidScale.current.z;
+      mesh.position.x = lastValidScalePosition.current.x;
+      mesh.position.z = lastValidScalePosition.current.z;
+    }
+  };
 
-	let handleObjectChange = () => {
-		if (mode === "translate") clampToFloor()
-		else if (mode === "scale") clampScale()
-		let mesh = meshRef.current
-		onUpdateItem(id, {
-			position: [mesh.position.x, mesh.position.y, mesh.position.z],
-			scale: [mesh.scale.x, mesh.scale.y, mesh.scale.z],
-		})
-	}
+  let handleObjectChange = () => {
+    if (mode === "translate") clampToFloor();
+    else if (mode === "scale") clampScale();
+    let mesh = meshRef.current;
+    onUpdateItem(id, {
+      position: [mesh.position.x, mesh.position.y, mesh.position.z],
+      scale: [mesh.scale.x, mesh.scale.y, mesh.scale.z],
+    });
+  };
 
-	return (
-		<>
-			<mesh
-				ref={meshRef}
-				position={position}
-				scale={scale}
-				userData={{ type: "bin" }}
-				onClick={(e) => {
-					e.stopPropagation()
-					onSelect(id)
-				}}
-				onDoubleClick={(e) => {
-					e.stopPropagation()
-					if (!editing) setEditing(true)
-					else onDoubleClick(id)
-				}}
-			>
-				<boxGeometry args={[1, binHalf * 2, 1]} />
-				<meshPhongMaterial color={selected ? "orange" : "green"} />
-			</mesh>
-			{selected && <DimensionLabels position={position} size={[scale[0], scale[1] * binHalf * 2, scale[2]]} />}
-			{selected && editing && (
-				<TransformControls
-					object={meshRef}
-					mode={mode}
-					translationSnap={mode === "translate" ? gridSnap : null}
-					onObjectChange={handleObjectChange}
-					onMouseDown={() => {
-						onBeginTransform()
-						onTransformingChange(true)
-						if (mode === "scale") beginScale()
-					}}
-					showY={mode === "translate"}
-					onMouseUp={() => onTransformingChange(false)}
-				/>
-			)}
-		</>
-	)
-}
+  return (
+    <>
+      <mesh
+        ref={meshRef}
+        position={position}
+        scale={scale}
+        userData={{ type: "bin" }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(id);
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          if (!editing) setEditing(true);
+          else onDoubleClick(id);
+        }}
+      >
+        <boxGeometry args={[1, binHalf * 2, 1]} />
+        <meshPhongMaterial color={selected ? "orange" : "green"} />
+      </mesh>
+      {selected && (
+        <DimensionLabels
+          position={position}
+          size={[scale[0], scale[1] * binHalf * 2, scale[2]]}
+        />
+      )}
+      {selected && editing && (
+        <TransformControls
+          object={meshRef}
+          mode={mode}
+          translationSnap={mode === "translate" ? gridSnap : null}
+          onObjectChange={handleObjectChange}
+          onMouseDown={() => {
+            onBeginTransform();
+            onTransformingChange(true);
+            if (mode === "scale") beginScale();
+          }}
+          showY={mode === "translate"}
+          onMouseUp={() => onTransformingChange(false)}
+        />
+      )}
+    </>
+  );
+};
