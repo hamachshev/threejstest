@@ -15,8 +15,7 @@ export type Segment = { a: WorldPoint; b: WorldPoint; length: number };
 export const UNIT_SIZE = 24;
 export const VIEW_SIZE = 640;
 export const CENTER = VIEW_SIZE / 2;
-export const CLOSE_THRESHOLD = 0.5;
-export const SEGMENT_HIT_THRESHOLD = 0.35;
+export const PROXIMITY_THRESHOLD = 0.35;
 export const MAJOR_GRID_INTERVAL = 5;
 
 export let snap = (v: number) => Math.round(v / gridSnap) * gridSnap;

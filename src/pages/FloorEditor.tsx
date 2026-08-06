@@ -45,6 +45,15 @@ let FloorEditor = () => {
     );
   };
 
+  let insertPoint = (segmentIndex: number, p: WorldPoint) => {
+    setPoints((prev) => [
+      ...prev.slice(0, segmentIndex + 1),
+      p,
+      ...prev.slice(segmentIndex + 1),
+    ]);
+    setSelectedSegment(null);
+  };
+
   let applyLength = () => {
     if (selectedSegment === null) return;
     let updated = resizeSegment(
@@ -83,6 +92,7 @@ let FloorEditor = () => {
             i === null ? setSelectedSegment(null) : selectSegment(i)
           }
           onMoveVertex={moveVertex}
+          onInsertPoint={insertPoint}
         />
       </div>
     </div>

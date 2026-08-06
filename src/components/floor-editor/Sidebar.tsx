@@ -36,7 +36,7 @@ export let Sidebar = ({
       <h3 style={{ marginTop: 0 }}>Floor Editor</h3>
       <p style={{ fontSize: 12, color: "#555" }}>
         {closed
-          ? "Click a segment to edit its length, or drag a vertex to reshape."
+          ? "Click a segment to edit its length, drag a vertex to reshape, or shift+click a line to add a point on it."
           : "Click to place points. Click the first point again (or press Close Shape) to finish."}
       </p>
       <div

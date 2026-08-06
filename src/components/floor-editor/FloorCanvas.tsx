@@ -4,8 +4,7 @@ import type Konva from "konva";
 import { Grid } from "./Grid";
 import { Compass } from "./Compass";
 import {
-  CLOSE_THRESHOLD,
-  SEGMENT_HIT_THRESHOLD,
+  PROXIMITY_THRESHOLD,
   VIEW_SIZE,
   distance,
   distanceToSegment,
@@ -27,6 +26,7 @@ type FloorCanvasProps = {
   onCloseShape: () => void;
   onSelectSegment: (i: number | null) => void;
   onMoveVertex: (i: number, p: WorldPoint) => void;
+  onInsertPoint: (segmentIndex: number, p: WorldPoint) => void;
 };
 
 export let FloorCanvas = ({
@@ -38,6 +38,7 @@ export let FloorCanvas = ({
   onCloseShape,
   onSelectSegment,
   onMoveVertex,
+  onInsertPoint,
 }: FloorCanvasProps) => {
   let stageRef = useRef<Konva.Stage>(null);
   let [pointer, setPointer] = useState<ScreenPoint | null>(null);
@@ -57,22 +58,19 @@ export let FloorCanvas = ({
     if (!clickPos) return;
     let world = screenToWorld(screenPoint(clickPos.x, clickPos.y));
 
+    // A click that reaches here missed every segment's own hit region (those
+    // handlers cancelBubble), so on a closed shape it just means "clicked
+    // away" — deselect.
     if (closed) {
-      let hitIndex = segments.reduce<{
-        index: number;
-        distance: number;
-      } | null>((closest, segment, i) => {
-        let dist = distanceToSegment(world, segment.a, segment.b);
-        if (dist > SEGMENT_HIT_THRESHOLD) return closest;
-        if (!closest || dist < closest.distance)
-          return { index: i, distance: dist };
-        return closest;
-      }, null);
-      onSelectSegment(hitIndex ? hitIndex.index : null);
+      onSelectSegment(null);
       return;
     }
 
-    if (points.length >= 3 && distance(world, points[0]) < CLOSE_THRESHOLD) {
+    //close enough to first point = close shape
+    if (
+      points.length >= 3 &&
+      distance(world, points[0]) < PROXIMITY_THRESHOLD
+    ) {
       onCloseShape();
       return;
     }
@@ -123,6 +121,19 @@ export let FloorCanvas = ({
                 hitStrokeWidth={16}
                 onClick={(e) => {
                   e.cancelBubble = true;
+                  let pos = stageRef.current?.getPointerPosition();
+                  let world_pos = pos
+                    ? screenToWorld(screenPoint(pos.x, pos.y))
+                    : null;
+                  if (
+                    world_pos &&
+                    e.evt.shiftKey &&
+                    distanceToSegment(world_pos, segment.a, segment.b) <=
+                      PROXIMITY_THRESHOLD
+                  ) {
+                    onInsertPoint(i, snapPoint(world_pos));
+                    return;
+                  }
                   onSelectSegment(i);
                 }}
               />
