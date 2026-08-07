@@ -155,7 +155,7 @@ let app = () => {
           floorBounds={floorBounds}
           sceneRef={sceneRef}
           setEditing={setEditing}
-          onBeginTransform={pushHistory}
+          pushHistory={pushHistory}
         />
       </div>
     </div>

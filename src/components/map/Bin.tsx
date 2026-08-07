@@ -3,7 +3,7 @@ import { useRef } from "react";
 import type { Mesh } from "three";
 import { footprintInPolygon } from "../../utils/map/floorContainment";
 import { binHalf, gridSnap, minScale } from "../../constants";
-import type { ItemProps } from "../../types";
+import { screenCoordinate, type ItemProps } from "../../types";
 import { DimensionLabels } from "./DimensionLabels";
 
 export let Bin = ({
@@ -17,9 +17,8 @@ export let Bin = ({
   floorPolygon,
   onSelect,
   onDoubleClick,
-  onTransformingChange,
+  setTransforming,
   onUpdateItem,
-  onBeginTransform,
 }: ItemProps) => {
   let meshRef = useRef<Mesh>(null!);
   let lastValidPosition = useRef({ x: position[0], z: position[2] });
@@ -109,7 +108,11 @@ export let Bin = ({
     else if (mode === "scale") clampScale();
     let mesh = meshRef.current;
     onUpdateItem(id, {
-      position: [mesh.position.x, mesh.position.y, mesh.position.z],
+      position: screenCoordinate(
+        mesh.position.x,
+        mesh.position.y,
+        mesh.position.z,
+      ),
       scale: [mesh.scale.x, mesh.scale.y, mesh.scale.z],
     });
   };
@@ -147,12 +150,11 @@ export let Bin = ({
           translationSnap={mode === "translate" ? gridSnap : null}
           onObjectChange={handleObjectChange}
           onMouseDown={() => {
-            onBeginTransform();
-            onTransformingChange(true);
+            setTransforming(true);
             if (mode === "scale") beginScale();
           }}
           showY={mode === "translate"}
-          onMouseUp={() => onTransformingChange(false)}
+          onMouseUp={() => setTransforming(false)}
         />
       )}
     </>

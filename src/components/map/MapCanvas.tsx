@@ -31,7 +31,7 @@ type MapCanvasProps = {
   floorPolygon: Polygon;
   floorBounds: FloorBounds;
   sceneRef: RefObject<Scene | null>;
-  onBeginTransform: () => void;
+  pushHistory: () => void;
 };
 
 let MapCanvas = ({
@@ -47,7 +47,7 @@ let MapCanvas = ({
   floorBounds,
   sceneRef,
   setEditing,
-  onBeginTransform,
+  pushHistory,
 }: MapCanvasProps) => {
   let gridRef = useRef<Mesh>(null);
   let [transforming, setTransforming] = useState(false);
@@ -94,9 +94,12 @@ let MapCanvas = ({
           floorPolygon,
           onSelect: selectItem,
           onDoubleClick: doubleClickItem,
-          onTransformingChange: setTransforming,
+          setTransforming: (b) => {
+            //only push history on start transforming and not on end
+            if (b) pushHistory();
+            setTransforming(b);
+          },
           onUpdateItem: updateItem,
-          onBeginTransform,
         };
         return item.type === "cube" ? (
           <Cube key={item.id} {...props} />

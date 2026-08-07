@@ -59,9 +59,8 @@ export type ItemProps = {
   floorPolygon: Point[];
   onSelect: (id: number) => void;
   onDoubleClick: (id: number) => void;
-  onTransformingChange: (transforming: boolean) => void;
+  setTransforming: (transforming: boolean) => void;
   onUpdateItem: (id: number, changes: ItemUpdate) => void;
-  onBeginTransform: () => void;
 };
 
 export type Polygon = Point[];
