@@ -16,7 +16,7 @@ Add cubes and bins, arrange them on the floor, and export the scene.
 
 - **Add items**: "Cube" / "Bin" buttons (enabled while editing).
 - **Editing mode**: toggle with the "Edit"/"Confirm" button, `Escape`, or
-  `Cmd/Ctrl+S`. Clicking away from any item (`onPointerMissed`) also exits
+  `Cmd/Ctrl+S` or `Enter`. Clicking away from any item (`onPointerMissed`) also exits
   editing and deselects.
 - **Select an item**: click it in the scene, or click its entry in the
   sidebar list (grouped by type, showing its position).

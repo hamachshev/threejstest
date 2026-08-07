@@ -43,7 +43,7 @@ export let mapKeyboardEventListener = (
     setItems((prev) => prev.filter((item) => item.id !== selectedId));
     return;
   }
-  if (e.key === "Escape") {
+  if (e.key === "Enter" || e.key === "Escape") {
     e.preventDefault();
     setEditing(false);
   }
