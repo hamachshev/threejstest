@@ -34,19 +34,14 @@ let app = () => {
   let setItems: Dispatch<SetStateAction<Item[]>> = (update) => {
     setScene((prev) => ({
       ...prev,
-      items:
-        typeof update === "function"
-          ? (update as (prev: Item[]) => Item[])(prev.items)
-          : update,
+      items: typeof update === "function" ? update(prev.items) : update,
     }));
   };
   let setFloorShape: Dispatch<SetStateAction<Shape>> = (update) => {
     setScene((prev) => ({
       ...prev,
       floorShape:
-        typeof update === "function"
-          ? (update as (prev: Shape | null) => Shape | null)(prev.floorShape)
-          : update,
+        typeof update === "function" ? update(prev.floorShape) : update,
     }));
   };
 
