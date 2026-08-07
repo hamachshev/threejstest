@@ -1,7 +1,7 @@
 import { GLTFExporter, GLTFLoader } from "three/examples/jsm/Addons.js";
 import type { Scene, Shape } from "three";
 import type { RefObject } from "react";
-import { itemTypes } from "../../types";
+import { itemTypes, screenCoordinate } from "../../types";
 import type { Point, Item, ItemType } from "../../types";
 import { shapeFromPolygon } from "./floorSvg";
 
@@ -60,7 +60,7 @@ export let onImport = async (file: File): Promise<ImportResult | null> => {
     return {
       items: itemChildren.map((child) => ({
         type: child.userData.type as ItemType,
-        position: child.position.toArray(),
+        position: screenCoordinate(...child.position.toArray()),
         scale: child.scale.toArray(),
       })),
       floorShape: floorChild

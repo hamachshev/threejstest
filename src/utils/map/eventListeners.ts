@@ -1,5 +1,6 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { gridSnap } from "../../constants";
+import { screenCoordinate } from "../../types";
 import type { Item, TransformMode } from "../../types";
 
 export type MapKeyboardEventListenerParams = {
@@ -69,7 +70,7 @@ export let mapKeyboardEventListener = (
       {
         type: copied.type,
         id,
-        position: [x + gridSnap, y, z + gridSnap],
+        position: screenCoordinate(x + gridSnap, y, z + gridSnap),
         scale: [...copied.scale],
       },
     ]);

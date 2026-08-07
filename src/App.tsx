@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Scene, Shape } from "three";
 import { binHalf, cubeHalf } from "./constants";
+import { screenCoordinate } from "./types";
 import type { Item, SceneState, TransformMode, WorldCoordinate } from "./types";
 import MapCanvas from "./components/map/MapCanvas";
 import Sidebar from "./components/map/Sidebar";
@@ -23,7 +24,7 @@ let app = () => {
       {
         type: "cube",
         id: nextId++,
-        position: [0, cubeHalf, 0],
+        position: screenCoordinate(0, cubeHalf, 0),
         scale: [1, 1, 1],
       },
     ],
@@ -62,7 +63,10 @@ let app = () => {
     pushHistory();
     let id = nextId++;
     let x = ((items.length * 1.5) % floorBounds.width) - floorBounds.width / 2;
-    setItems([...items, { type, id, position: [x, y, 0], scale: [1, 1, 1] }]);
+    setItems([
+      ...items,
+      { type, id, position: screenCoordinate(x, y, 0), scale: [1, 1, 1] },
+    ]);
     setSelectedId(id);
     setMode("translate");
   };
