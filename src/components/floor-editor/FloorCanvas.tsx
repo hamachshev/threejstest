@@ -251,11 +251,14 @@ export let FloorCanvas = ({
               }}
               onDragMove={(e) => {
                 let node = e.target;
-                let worldPos = snapPoint(
-                  screenToWorld(screenPoint(node.x(), node.y())),
+                let unsnappedWorldPos = screenToWorld(
+                  screenPoint(node.x(), node.y()),
                 );
-                let snapped = worldToScreen(worldPos);
-                node.position(snapped);
+                let worldPos = shiftHeld
+                  ? snapPoint(unsnappedWorldPos)
+                  : unsnappedWorldPos;
+                let screenPos = worldToScreen(worldPos);
+                node.position(screenPos);
                 onMoveVertex(i, worldPos);
               }}
               onDragEnd={() => {
