@@ -41,6 +41,7 @@ export let mapKeyboardEventListener = (
   if (e.key === "Delete" || e.key === "Backspace") {
     pushHistory();
     setItems((prev) => prev.filter((item) => item.id !== selectedId));
+    setEditing(false);
     return;
   }
   if (e.key === "Enter" || e.key === "Escape") {
