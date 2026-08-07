@@ -40,6 +40,11 @@ export let segmentsIntersect = (p1: Point, p2: Point, p3: Point, p4: Point) => {
   return false;
 };
 
+// Sub-millimeter shrink applied to the tested footprint so a box flush
+// against the wall reads as strictly inside instead of being rejected by
+// boundary-touching false positives in pointInPolygon/segmentsIntersect.
+let containmentEpsilon = 1e-3;
+
 // Checks that an axis-aligned box footprint sits fully inside the floor
 // polygon: all 4 corners must be inside, and no box edge may cross a floor
 // boundary edge (the corner check alone misses a box that straddles a
@@ -51,6 +56,8 @@ export let footprintInPolygon = (
   halfZ: number,
   polygon: Point[],
 ) => {
+  halfX = Math.max(0, halfX - containmentEpsilon);
+  halfZ = Math.max(0, halfZ - containmentEpsilon);
   let corners: Point[] = [
     { x: x - halfX, z: z - halfZ },
     { x: x + halfX, z: z - halfZ },
