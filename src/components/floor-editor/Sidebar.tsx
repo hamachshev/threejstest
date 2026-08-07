@@ -5,8 +5,10 @@ type SidebarProps = {
   closed: boolean;
   segments: Segment[];
   selectedSegment: number | null;
+  selectedPoint: number | null;
   lengthInput: string;
   onSelectSegment: (i: number) => void;
+  onSelectPoint: (i: number) => void;
   onUndo: () => void;
   onCloseShape: () => void;
   onClear: () => void;
@@ -20,8 +22,10 @@ export let Sidebar = ({
   closed,
   segments,
   selectedSegment,
+  selectedPoint,
   lengthInput,
   onSelectSegment,
+  onSelectPoint,
   onUndo,
   onCloseShape,
   onClear,
@@ -57,6 +61,30 @@ export let Sidebar = ({
           Export SVG
         </button>
       </div>
+
+      {points.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontWeight: "bold", fontSize: 12, marginBottom: 4 }}>
+            Points
+          </div>
+          {points.map((point, i) => (
+            <div
+              key={i}
+              onClick={() => onSelectPoint(i)}
+              style={{
+                padding: "4px 6px",
+                marginBottom: 2,
+                borderRadius: 4,
+                cursor: "pointer",
+                background: selectedPoint === i ? "#cde" : "transparent",
+                fontSize: 13,
+              }}
+            >
+              Point {i + 1}: ({point.x.toFixed(1)}, {point.y.toFixed(1)})
+            </div>
+          ))}
+        </div>
+      )}
 
       {segments.length > 0 && (
         <div style={{ marginBottom: 10 }}>

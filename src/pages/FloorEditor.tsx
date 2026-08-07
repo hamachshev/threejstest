@@ -130,8 +130,10 @@ let FloorEditor = () => {
         closed={closed}
         segments={segments}
         selectedSegment={selectedSegment}
+        selectedPoint={selectedPoint}
         lengthInput={lengthInput}
         onSelectSegment={selectSegment}
+        onSelectPoint={selectPoint}
         onUndo={undoPoint}
         onCloseShape={closeShape}
         onClear={clearAll}
