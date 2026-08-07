@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FloorCanvas } from "../components/floor-editor/FloorCanvas";
 import { Sidebar } from "../components/floor-editor/Sidebar";
 import {
@@ -13,6 +13,22 @@ let FloorEditor = () => {
   let [closed, setClosed] = useState(false);
   let [selectedSegment, setSelectedSegment] = useState<number | null>(null);
   let [lengthInput, setLengthInput] = useState("");
+  let [shiftHeld, setShiftHeld] = useState(false);
+
+  useEffect(() => {
+    let handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Shift") setShiftHeld(true);
+    };
+    let handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === "Shift") setShiftHeld(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, []);
 
   let segments = useMemo(
     () => computeSegments(points, closed),
@@ -54,6 +70,11 @@ let FloorEditor = () => {
     setSelectedSegment(null);
   };
 
+  // Undoes a still-unconfirmed preview point (shift-hover) that the user
+  // moved away from or released shift on without clicking.
+  let removePoint = (i: number) =>
+    setPoints((prev) => prev.filter((_, idx) => idx !== i));
+
   let applyLength = () => {
     if (selectedSegment === null) return;
     let updated = resizeSegment(
@@ -84,6 +105,7 @@ let FloorEditor = () => {
         <FloorCanvas
           points={points}
           closed={closed}
+          shiftHeld={shiftHeld}
           selectedSegment={selectedSegment}
           segments={segments}
           onAddPoint={addPoint}
@@ -93,6 +115,7 @@ let FloorEditor = () => {
           }
           onMoveVertex={moveVertex}
           onInsertPoint={insertPoint}
+          onRemovePoint={removePoint}
         />
       </div>
     </div>

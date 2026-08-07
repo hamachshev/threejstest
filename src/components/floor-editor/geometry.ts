@@ -15,7 +15,7 @@ export type Segment = { a: WorldPoint; b: WorldPoint; length: number };
 export const UNIT_SIZE = 24;
 export const VIEW_SIZE = 640;
 export const CENTER = VIEW_SIZE / 2;
-export const PROXIMITY_THRESHOLD = 0.35;
+export const PROXIMITY_THRESHOLD = 0.15;
 export const MAJOR_GRID_INTERVAL = 5;
 
 export let snap = (v: number) => Math.round(v / gridSnap) * gridSnap;
@@ -29,7 +29,7 @@ export let screenToWorld = (p: ScreenPoint) =>
 export let distance = <T extends Point>(a: T, b: T) =>
   Math.hypot(b.x - a.x, b.y - a.y);
 
-export let distanceToSegment = (
+export let closestPointOnSegment = (
   p: WorldPoint,
   a: WorldPoint,
   b: WorldPoint,
@@ -37,14 +37,16 @@ export let distanceToSegment = (
   let dx = b.x - a.x;
   let dy = b.y - a.y;
   let lengthSq = dx * dx + dy * dy;
-  if (lengthSq === 0) return distance(p, a);
+  if (lengthSq === 0) return a;
   let t = Math.max(
     0,
     Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSq),
   );
-  let closest = worldPoint(a.x + t * dx, a.y + t * dy);
-  return distance(p, closest);
+  return worldPoint(a.x + t * dx, a.y + t * dy);
 };
+
+export let distanceToSegment = (p: WorldPoint, a: WorldPoint, b: WorldPoint) =>
+  distance(p, closestPointOnSegment(p, a, b));
 
 export let computeSegments = (
   points: WorldPoint[],

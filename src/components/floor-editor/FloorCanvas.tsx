@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Stage, Layer, Line, Circle, Label, Tag, Text } from "react-konva";
 import type Konva from "konva";
 import { Grid } from "./Grid";
@@ -6,8 +6,8 @@ import { Compass } from "./Compass";
 import {
   PROXIMITY_THRESHOLD,
   VIEW_SIZE,
+  closestPointOnSegment,
   distance,
-  distanceToSegment,
   screenPoint,
   screenToWorld,
   snapPoint,
@@ -20,6 +20,7 @@ import {
 type FloorCanvasProps = {
   points: WorldPoint[];
   closed: boolean;
+  shiftHeld: boolean;
   selectedSegment: number | null;
   segments: Segment[];
   onAddPoint: (p: WorldPoint) => void;
@@ -27,11 +28,13 @@ type FloorCanvasProps = {
   onSelectSegment: (i: number | null) => void;
   onMoveVertex: (i: number, p: WorldPoint) => void;
   onInsertPoint: (segmentIndex: number, p: WorldPoint) => void;
+  onRemovePoint: (i: number) => void;
 };
 
 export let FloorCanvas = ({
   points,
   closed,
+  shiftHeld,
   selectedSegment,
   segments,
   onAddPoint,
@@ -39,19 +42,85 @@ export let FloorCanvas = ({
   onSelectSegment,
   onMoveVertex,
   onInsertPoint,
+  onRemovePoint,
 }: FloorCanvasProps) => {
   let stageRef = useRef<Konva.Stage>(null);
   let [pointer, setPointer] = useState<ScreenPoint | null>(null);
   let [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+
+  // Index in `points` of an unconfirmed shift-hover preview point
+  let previewIndexRef = useRef<number | null>(null);
+
+  let cancelPreview = () => {
+    if (previewIndexRef.current === null) return;
+    onRemovePoint(previewIndexRef.current);
+    previewIndexRef.current = null;
+  };
+
+  let confirmPreview = () => {
+    previewIndexRef.current = null;
+  };
+
+  // Releasing shift cancels a pending preview even if the pointer never
+  // moves again.
+  useEffect(() => {
+    if (!shiftHeld) cancelPreview();
+  }, [shiftHeld]);
 
   let handlePointerMove = () => {
     let stage = stageRef.current;
     if (!stage) return;
     let pos = stage.getPointerPosition();
     setPointer(pos ? screenPoint(pos.x, pos.y) : null);
+
+    if (!pos || !closed || !shiftHeld) {
+      cancelPreview();
+      return;
+    }
+
+    let world = screenToWorld(screenPoint(pos.x, pos.y));
+
+    if (previewIndexRef.current !== null) {
+      // Track the segment's original endpoints, not `segments` (which now
+      // includes the preview point itself and would just measure ~0).
+      let idx = previewIndexRef.current;
+      let n = points.length;
+      let a = points[(idx - 1 + n) % n];
+      let b = points[(idx + 1) % n];
+      let closest = closestPointOnSegment(world, a, b);
+      if (distance(world, closest) > PROXIMITY_THRESHOLD) {
+        cancelPreview();
+      } else {
+        onMoveVertex(idx, closest);
+      }
+      return;
+    }
+
+    let hit = segments.reduce<{
+      index: number;
+      distance: number;
+      point: WorldPoint;
+    } | null>((closest, segment, i) => {
+      let point = closestPointOnSegment(world, segment.a, segment.b);
+      let dist = distance(world, point);
+      if (dist > PROXIMITY_THRESHOLD) return closest;
+      if (!closest || dist < closest.distance)
+        return { index: i, distance: dist, point };
+      return closest;
+    }, null);
+
+    if (hit) {
+      previewIndexRef.current = hit.index + 1;
+      onInsertPoint(hit.index, hit.point);
+    }
   };
 
   let handleStageClick = () => {
+    if (previewIndexRef.current !== null) {
+      confirmPreview();
+      return;
+    }
+
     let stage = stageRef.current;
     if (!stage) return;
     let clickPos = stage.getPointerPosition();
@@ -101,7 +170,10 @@ export let FloorCanvas = ({
       style={{ width: "100%", height: "100%", cursor: "crosshair" }}
       onClick={handleStageClick}
       onMouseMove={handlePointerMove}
-      onMouseLeave={() => setPointer(null)}
+      onMouseLeave={() => {
+        setPointer(null);
+        cancelPreview();
+      }}
     >
       <Grid />
       <Compass />
@@ -121,17 +193,8 @@ export let FloorCanvas = ({
                 hitStrokeWidth={16}
                 onClick={(e) => {
                   e.cancelBubble = true;
-                  let pos = stageRef.current?.getPointerPosition();
-                  let world_pos = pos
-                    ? screenToWorld(screenPoint(pos.x, pos.y))
-                    : null;
-                  if (
-                    world_pos &&
-                    e.evt.shiftKey &&
-                    distanceToSegment(world_pos, segment.a, segment.b) <=
-                      PROXIMITY_THRESHOLD
-                  ) {
-                    onInsertPoint(i, snapPoint(world_pos));
+                  if (previewIndexRef.current !== null) {
+                    confirmPreview();
                     return;
                   }
                   onSelectSegment(i);
