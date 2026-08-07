@@ -60,7 +60,34 @@ let FloorEditor = () => {
     setPoints([]);
     setClosed(false);
     setSelectedSegment(null);
+    setSelectedPoint(null);
   };
+
+  // A polygon needs at least 3 points, so refuse to delete below that.
+  let deletePoint = (i: number) => {
+    if (points.length <= 3) return;
+    setPoints((prev) => prev.filter((_, idx) => idx !== i));
+    setSelectedPoint(null);
+    setSelectedSegment(null);
+  };
+
+  useEffect(() => {
+    let handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedPoint === null) return;
+        // Don't hijack Backspace while the user is typing in the sidebar.
+        if (
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement
+        )
+          return;
+        e.preventDefault();
+        deletePoint(selectedPoint);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedPoint, points]);
 
   let moveVertex = (i: number, p: WorldPoint) => {
     setPoints((prev) =>
