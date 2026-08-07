@@ -22,10 +22,12 @@ type FloorCanvasProps = {
   closed: boolean;
   shiftHeld: boolean;
   selectedSegment: number | null;
+  selectedPoint: number | null;
   segments: Segment[];
   onAddPoint: (p: WorldPoint) => void;
   onCloseShape: () => void;
   onSelectSegment: (i: number | null) => void;
+  onSelectPoint: (i: number | null) => void;
   onMoveVertex: (i: number, p: WorldPoint) => void;
   onInsertPoint: (segmentIndex: number, p: WorldPoint) => void;
   onRemovePoint: (i: number) => void;
@@ -36,10 +38,12 @@ export let FloorCanvas = ({
   closed,
   shiftHeld,
   selectedSegment,
+  selectedPoint,
   segments,
   onAddPoint,
   onCloseShape,
   onSelectSegment,
+  onSelectPoint,
   onMoveVertex,
   onInsertPoint,
   onRemovePoint,
@@ -132,6 +136,7 @@ export let FloorCanvas = ({
     // away" — deselect.
     if (closed) {
       onSelectSegment(null);
+      onSelectPoint(null);
       return;
     }
 
@@ -220,15 +225,30 @@ export let FloorCanvas = ({
 
         {points.map((p, i) => {
           let screen = worldToScreen(p);
+          let selected = selectedPoint === i;
           return (
             <Circle
               key={i}
               x={screen.x}
               y={screen.y}
-              radius={5}
-              fill={i === 0 ? "#c33" : "#333"}
+              radius={selected ? 7 : 5}
+              fill={selected ? "#3366ff" : i === 0 ? "#c33" : "#333"}
               draggable={closed}
-              onDragStart={() => setDraggingIndex(i)}
+              onClick={(e) => {
+                // While drawing, points aren't selectable yet
+                if (!closed) return;
+
+                e.cancelBubble = true;
+                if (previewIndexRef.current !== null) {
+                  confirmPreview();
+                  return;
+                }
+                onSelectPoint(i);
+              }}
+              onDragStart={() => {
+                setDraggingIndex(i);
+                onSelectPoint(i);
+              }}
               onDragMove={(e) => {
                 let node = e.target;
                 let worldPos = snapPoint(
@@ -238,7 +258,9 @@ export let FloorCanvas = ({
                 node.position(snapped);
                 onMoveVertex(i, worldPos);
               }}
-              onDragEnd={() => setDraggingIndex(null)}
+              onDragEnd={() => {
+                setDraggingIndex(null);
+              }}
             />
           );
         })}

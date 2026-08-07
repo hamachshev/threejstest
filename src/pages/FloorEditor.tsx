@@ -12,6 +12,7 @@ let FloorEditor = () => {
   let [points, setPoints] = useState<WorldPoint[]>([]);
   let [closed, setClosed] = useState(false);
   let [selectedSegment, setSelectedSegment] = useState<number | null>(null);
+  let [selectedPoint, setSelectedPoint] = useState<number | null>(null);
   let [lengthInput, setLengthInput] = useState("");
   let [shiftHeld, setShiftHeld] = useState(false);
 
@@ -37,7 +38,13 @@ let FloorEditor = () => {
 
   let selectSegment = (i: number) => {
     setSelectedSegment(i);
+    setSelectedPoint(null);
     setLengthInput(segments[i].length.toFixed(1));
+  };
+
+  let selectPoint = (i: number) => {
+    setSelectedPoint(i);
+    setSelectedSegment(null);
   };
 
   let addPoint = (p: WorldPoint) => setPoints((prev) => [...prev, p]);
@@ -68,12 +75,16 @@ let FloorEditor = () => {
       ...prev.slice(segmentIndex + 1),
     ]);
     setSelectedSegment(null);
+    setSelectedPoint(null);
   };
 
   // Undoes a still-unconfirmed preview point (shift-hover) that the user
   // moved away from or released shift on without clicking.
-  let removePoint = (i: number) =>
+  let removePoint = (i: number) => {
     setPoints((prev) => prev.filter((_, idx) => idx !== i));
+    setSelectedPoint(null);
+    setSelectedSegment(null);
+  };
 
   let applyLength = () => {
     if (selectedSegment === null) return;
@@ -107,11 +118,15 @@ let FloorEditor = () => {
           closed={closed}
           shiftHeld={shiftHeld}
           selectedSegment={selectedSegment}
+          selectedPoint={selectedPoint}
           segments={segments}
           onAddPoint={addPoint}
           onCloseShape={closeShape}
           onSelectSegment={(i) =>
             i === null ? setSelectedSegment(null) : selectSegment(i)
+          }
+          onSelectPoint={(i) =>
+            i === null ? setSelectedPoint(null) : selectPoint(i)
           }
           onMoveVertex={moveVertex}
           onInsertPoint={insertPoint}
