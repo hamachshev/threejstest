@@ -1,12 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import type { Scene, Shape } from "three";
-import { binHalf, cubeHalf, floorX, floorY } from "./constants";
-import type { Item, SceneState, TransformMode } from "./types";
+import { binHalf, cubeHalf } from "./constants";
+import type { Item, SceneState, TransformMode, WorldCoordinate } from "./types";
 import MapCanvas from "./components/map/MapCanvas";
 import Sidebar from "./components/map/Sidebar";
 import { onExport, onImport } from "./utils/map/serde";
 import { mapKeyboardEventListener } from "./utils/map/eventListeners";
+import { toWorldCoordinates } from "./utils/map/worldCoordinates";
+import {
+  createDefaultFloorShape,
+  boundsFromPolygon,
+  polygonFromShape,
+} from "./utils/map/floorSvg";
 import { useClipboard, useHistory } from "./hooks/useEditorHistory";
 
 let nextId = 1;
@@ -21,7 +27,7 @@ let app = () => {
         scale: [1, 1, 1],
       },
     ],
-    floorShape: null,
+    floorShape: createDefaultFloorShape(),
   }));
   let { items, floorShape } = scene;
 
@@ -34,7 +40,7 @@ let app = () => {
           : update,
     }));
   };
-  let setFloorShape: Dispatch<SetStateAction<Shape | null>> = (update) => {
+  let setFloorShape: Dispatch<SetStateAction<Shape>> = (update) => {
     setScene((prev) => ({
       ...prev,
       floorShape:
@@ -51,30 +57,28 @@ let app = () => {
   let { clipboardRef, copy } = useClipboard();
   let { pushHistory, undo, redo } = useHistory(scene, setScene);
 
+  let floorPolygon = useMemo(() => polygonFromShape(floorShape), [floorShape]);
+  let floorBounds = useMemo(
+    () => boundsFromPolygon(floorPolygon),
+    [floorPolygon],
+  );
+
   let addItem = (type: Item["type"], y: number) => {
     pushHistory();
     let id = nextId++;
-    let x = ((items.length * 1.5) % floorX) - floorX / 2;
+    let x = ((items.length * 1.5) % floorBounds.width) - floorBounds.width / 2;
     setItems([...items, { type, id, position: [x, y, 0], scale: [1, 1, 1] }]);
     setSelectedId(id);
     setMode("translate");
   };
 
   let warehouseItemCoordinates = useMemo(() => {
-    type WarehouseCoordinates = {
-      id: number;
-      x: number;
-      y: number;
-      height: number;
-    };
+    type WarehouseCoordinate = WorldCoordinate & { id: number };
     return items.reduce(
       (acc, item) => {
-        let [x, y, z] = item.position;
-        const itemCoords = {
+        let itemCoords = {
           id: item.id,
-          x: floorX / 2 - x,
-          y: floorY / 2 - z,
-          height: y,
+          ...toWorldCoordinates(item.position, floorPolygon),
         };
         if (item.type === "cube") {
           acc.cubes.push(itemCoords);
@@ -84,11 +88,11 @@ let app = () => {
         return acc;
       },
       {
-        cubes: [] as WarehouseCoordinates[],
-        bins: [] as WarehouseCoordinates[],
+        cubes: [] as WarehouseCoordinate[],
+        bins: [] as WarehouseCoordinate[],
       },
     );
-  }, [items]);
+  }, [items, floorPolygon]);
 
   let logPositions = () => {
     console.log(warehouseItemCoordinates);
@@ -148,6 +152,8 @@ let app = () => {
           setMode={setMode}
           editing={editing}
           floorShape={floorShape}
+          floorPolygon={floorPolygon}
+          floorBounds={floorBounds}
           sceneRef={sceneRef}
           setEditing={setEditing}
           onBeginTransform={pushHistory}

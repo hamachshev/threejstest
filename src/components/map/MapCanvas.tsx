@@ -3,17 +3,18 @@ import { CompassGizmo } from "./CompassGizmo";
 import { Canvas } from "@react-three/fiber";
 import { AlwaysStencilFunc, DoubleSide, ReplaceStencilOp } from "three";
 import type { Mesh, Scene, Shape } from "three";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { Cube } from "./Cube";
 import { Bin } from "./Bin";
 import GridStencilMask from "./GridStencilMask";
-import { floorX, floorY, floorThickness, gridSnap } from "../../constants";
+import { floorThickness, gridSnap } from "../../constants";
+import type { FloorBounds } from "../../utils/map/floorSvg";
 import type {
-  FloorPoint,
   Item,
   ItemProps,
   ItemUpdate,
+  Polygon,
   TransformMode,
 } from "../../types";
 
@@ -26,7 +27,9 @@ type MapCanvasProps = {
   setMode: Dispatch<SetStateAction<TransformMode>>;
   setEditing: Dispatch<SetStateAction<boolean>>;
   editing: boolean;
-  floorShape: Shape | null;
+  floorShape: Shape;
+  floorPolygon: Polygon;
+  floorBounds: FloorBounds;
   sceneRef: RefObject<Scene | null>;
   onBeginTransform: () => void;
 };
@@ -40,32 +43,14 @@ let MapCanvas = ({
   setMode,
   editing,
   floorShape,
+  floorPolygon,
+  floorBounds,
   sceneRef,
   setEditing,
   onBeginTransform,
 }: MapCanvasProps) => {
   let gridRef = useRef<Mesh>(null);
   let [transforming, setTransforming] = useState(false);
-
-  let floorPolygon = useMemo<FloorPoint[]>(() => {
-    if (!floorShape)
-      return [
-        { x: -floorX / 2, z: -floorY / 2 },
-        { x: floorX / 2, z: -floorY / 2 },
-        { x: floorX / 2, z: floorY / 2 },
-        { x: -floorX / 2, z: floorY / 2 },
-      ];
-    return floorShape.getPoints().map((p) => ({ x: p.x, z: p.y }));
-  }, [floorShape]);
-
-  let floorBounds = useMemo(() => {
-    let xs = floorPolygon.map((p) => p.x);
-    let zs = floorPolygon.map((p) => p.z);
-    return {
-      width: Math.max(...xs) - Math.min(...xs),
-      depth: Math.max(...zs) - Math.min(...zs),
-    };
-  }, [floorPolygon]);
 
   let selectItem = (id: number) => {
     setSelectedId(id);
@@ -120,38 +105,22 @@ let MapCanvas = ({
         );
       })}
       <color attach="background" args={["white"]} />
-      {floorShape ? (
-        <mesh
-          rotation={[Math.PI / 2, 0, 0]}
-          userData={{ type: "floor", floorPolygon }}
-        >
-          <extrudeGeometry
-            args={[floorShape, { depth: floorThickness, bevelEnabled: false }]}
-          />
-          <meshPhongMaterial
-            color={"gray"}
-            side={DoubleSide}
-            stencilWrite
-            stencilRef={1}
-            stencilFunc={AlwaysStencilFunc}
-            stencilZPass={ReplaceStencilOp}
-          />
-        </mesh>
-      ) : (
-        <mesh
-          position={[0, -floorThickness / 2, 0]}
-          userData={{ type: "floor", floorPolygon }}
-        >
-          <boxGeometry args={[floorX, floorThickness, floorY]} />
-          <meshPhongMaterial
-            color={"gray"}
-            stencilWrite
-            stencilRef={1}
-            stencilFunc={AlwaysStencilFunc}
-            stencilZPass={ReplaceStencilOp}
-          />
-        </mesh>
-      )}
+      <mesh
+        rotation={[Math.PI / 2, 0, 0]}
+        userData={{ type: "floor", floorPolygon }}
+      >
+        <extrudeGeometry
+          args={[floorShape, { depth: floorThickness, bevelEnabled: false }]}
+        />
+        <meshPhongMaterial
+          color={"gray"}
+          side={DoubleSide}
+          stencilWrite
+          stencilRef={1}
+          stencilFunc={AlwaysStencilFunc}
+          stencilZPass={ReplaceStencilOp}
+        />
+      </mesh>
       <Grid
         ref={gridRef}
         position={[0, 0.001, 0]}

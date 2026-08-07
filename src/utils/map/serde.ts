@@ -2,13 +2,13 @@ import { GLTFExporter, GLTFLoader } from "three/examples/jsm/Addons.js";
 import type { Scene, Shape } from "three";
 import type { RefObject } from "react";
 import { itemTypes } from "../../types";
-import type { FloorPoint, Item, ItemType } from "../../types";
-import { shapeFromFloorPolygon } from "./floorSvg";
+import type { Point, Item, ItemType } from "../../types";
+import { shapeFromPolygon } from "./floorSvg";
 
 let isItemType = (value: unknown): value is ItemType =>
   itemTypes.includes(value as ItemType);
 
-let isFloorPolygon = (value: unknown): value is FloorPoint[] =>
+let isFloorPolygon = (value: unknown): value is Point[] =>
   Array.isArray(value) &&
   value.every((p) => typeof p?.x === "number" && typeof p?.z === "number");
 
@@ -64,7 +64,7 @@ export let onImport = async (file: File): Promise<ImportResult | null> => {
         scale: child.scale.toArray(),
       })),
       floorShape: floorChild
-        ? shapeFromFloorPolygon(floorChild.userData.floorPolygon)
+        ? shapeFromPolygon(floorChild.userData.floorPolygon)
         : null,
     };
   } catch (error) {

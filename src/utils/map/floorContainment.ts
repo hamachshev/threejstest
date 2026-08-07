@@ -1,6 +1,6 @@
-import type { FloorPoint } from "../../types";
+import type { Point } from "../../types";
 
-export let pointInPolygon = (x: number, z: number, polygon: FloorPoint[]) => {
+export let pointInPolygon = (x: number, z: number, polygon: Point[]) => {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
     let a = polygon[i];
@@ -12,24 +12,19 @@ export let pointInPolygon = (x: number, z: number, polygon: FloorPoint[]) => {
   return inside;
 };
 
-let orientation = (a: FloorPoint, b: FloorPoint, c: FloorPoint) => {
+let orientation = (a: Point, b: Point, c: Point) => {
   let val = (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
   if (val === 0) return 0;
   return val > 0 ? 1 : 2;
 };
 
-let onSegment = (a: FloorPoint, b: FloorPoint, c: FloorPoint) =>
+let onSegment = (a: Point, b: Point, c: Point) =>
   Math.min(a.x, c.x) <= b.x &&
   b.x <= Math.max(a.x, c.x) &&
   Math.min(a.z, c.z) <= b.z &&
   b.z <= Math.max(a.z, c.z);
 
-export let segmentsIntersect = (
-  p1: FloorPoint,
-  p2: FloorPoint,
-  p3: FloorPoint,
-  p4: FloorPoint,
-) => {
+export let segmentsIntersect = (p1: Point, p2: Point, p3: Point, p4: Point) => {
   let o1 = orientation(p1, p2, p3);
   let o2 = orientation(p1, p2, p4);
   let o3 = orientation(p3, p4, p1);
@@ -54,9 +49,9 @@ export let footprintInPolygon = (
   z: number,
   halfX: number,
   halfZ: number,
-  polygon: FloorPoint[],
+  polygon: Point[],
 ) => {
-  let corners: FloorPoint[] = [
+  let corners: Point[] = [
     { x: x - halfX, z: z - halfZ },
     { x: x + halfX, z: z - halfZ },
     { x: x + halfX, z: z + halfZ },

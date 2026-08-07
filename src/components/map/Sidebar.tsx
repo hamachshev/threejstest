@@ -12,7 +12,7 @@ type SidebarProps = {
   onLogPositions: () => void;
   onExport: () => Promise<boolean>;
   onImport: (file: File) => Promise<boolean>;
-  setFloorShape: Dispatch<SetStateAction<Shape | null>>;
+  setFloorShape: Dispatch<SetStateAction<Shape>>;
   items: Item[];
   selectedId: number | null;
   setSelectedId: Dispatch<SetStateAction<number | null>>;

@@ -1,5 +1,7 @@
-export const floorX = 10;
-export const floorY = 10;
+// Only used to build the initial floor shape in the scene-state constructor —
+// everywhere else derives the floor's actual size from that shape/polygon.
+export const defaultFloorX = 10;
+export const defaultFloorY = 10;
 export const gridSnap = 0.5;
 export const floorThickness = 0.1;
 export const cubeHalf = 0.5;
